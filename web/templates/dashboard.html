@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>ArgoCD Sync Status Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .synced { color: #2ecc71; }
+        .out-of-sync { color: #e74c3c; }
+        
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            padding: 20px;
+        }
+        
+        .status-card {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: transform 0.2s;
+        }
+        
+        .status-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        
+        .overall-status {
+            font-size: 24px;
+            padding: 20px;
+            margin: 20px;
+            text-align: center;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .health-status {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            margin-top: 8px;
+        }
+        
+        .health-status.Healthy { background-color: #2ecc71; color: white; }
+        .health-status.Degraded { background-color: #e74c3c; color: white; }
+        .health-status.Progressing { background-color: #f1c40f; color: black; }
+        
+        .app-name {
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .app-details {
+            color: #666;
+            font-size: 0.9em;
+        }
+        
+        .refresh-info {
+            text-align: center;
+            color: #666;
+            font-size: 0.9em;
+            margin-bottom: 20px;
+        }
+    </style>
+    <script>
+        // Auto-refresh the page every 30 seconds
+        function autoRefresh() {
+            const refreshInterval = 10; // seconds
+            let countdown = refreshInterval;
+            
+            // Update countdown every second
+            setInterval(() => {
+                countdown--;
+                document.getElementById('countdown').textContent = countdown;
+                if (countdown <= 0) {
+                    location.reload();
+                }
+            }, 1000);
+        }
+        
+        // Start auto-refresh when page loads
+        window.onload = autoRefresh;
+    </script>
+</head>
+<body>
+    <div class="overall-status">
+        {{if .AllSynced}}
+            <span class="synced">✅ All Applications Synced</span>
+        {{else}}
+            <span class="out-of-sync">❌ Some Applications Out of Sync</span>
+        {{end}}
+    </div>
+    
+    <div class="refresh-info">
+        Refreshing in <span id="countdown">10</span> seconds
+    </div>
+
+    <div class="grid-container">
+        {{range .Applications}}
+            <div class="status-card">
+                <div class="app-name">{{.Name}}</div>
+                <div class="app-details">
+                    <div>Project: {{.Project}}</div>
+                    <div>Namespace: {{.Namespace}}</div>
+                    <div>Sync Status: 
+                        <span class="{{if eq .SyncStatus "Synced"}}synced{{else}}out-of-sync{{end}}">
+                            {{.SyncStatus}}
+                        </span>
+                    </div>
+                    <div>
+                        <span class="health-status {{.Health}}">{{.Health}}</span>
+                    </div>
+                </div>
+            </div>
+        {{end}}
+    </div>
+</body>
+</html>
